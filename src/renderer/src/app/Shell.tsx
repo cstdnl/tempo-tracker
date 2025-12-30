@@ -6,25 +6,15 @@ interface ShellProps {
 
 export default function Shell({ children }: ShellProps): React.JSX.Element {
     return (
-      <div className="dark"
-        style={{
-          display: 'flex',
-          height: '100vh',
-          width: '100vw',
-          overflow: 'hidden'
-        }}
-      >
+      <div className="flex flex-col h-screen w-screen overflow-hidden">
+        {/* Draggable Title Bar Region */}
+        <div 
+          className="h-10 w-full shrink-0"
+          style={{ WebkitAppRegion: 'drag' } as React.CSSProperties} 
+        />
+        
         <main
-          className="dark"
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            padding: 20,
-            gap: 16,
-            maxWidth: 1000,
-            margin: '0 auto'
-          }}
+          className="flex-1 flex flex-col px-5 pb-5 gap-4 max-w-[1000px] w-full mx-auto overflow-hidden"
         >
           {children}
         </main>

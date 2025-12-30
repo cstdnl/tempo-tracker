@@ -107,7 +107,7 @@ export default function ReportPage(): React.JSX.Element {
           <SelectTrigger className="w-full truncate h-8 rounded-(--radius)">
             <SelectValue placeholder="Choose collection" />
           </SelectTrigger>
-          <SelectContent className="rounded-(--radius)">
+          <SelectContent position="popper" align="start" className="rounded-(--radius)">
             <SelectItem value="all">All</SelectItem>
             <SelectItem value="default">Default</SelectItem>
             {collections.map((c) => (

@@ -21,7 +21,7 @@ function App(): React.JSX.Element {
   return (
     <Shell>
       <header className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 pt-1">
           <Tabs 
             value={page} 
             onValueChange={(value) => setPage(value as 'main' | 'archive' | 'export' | 'settings')}

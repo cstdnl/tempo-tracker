@@ -38,10 +38,10 @@ export function AppearanceSettings() {
               value={config.appearance} 
               onValueChange={(v) => updateConfig('appearance', v as Appearance)}
             >
-              <SelectTrigger className="h-9 text-xs rounded-(--radius)">
+              <SelectTrigger className="h-9 border-muted text-xs rounded-(--radius)">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className='rounded-(--radius)'>
+              <SelectContent position="popper" align="start" className='rounded-(--radius)'>
                 <SelectItem value="light" className="text-xs rounded-(--radius)">Light</SelectItem>
                 <SelectItem value="dark" className="text-xs rounded-(--radius)">Dark</SelectItem>
               </SelectContent>
@@ -57,7 +57,7 @@ export function AppearanceSettings() {
               <SelectTrigger className="h-9 text-xs rounded-(--radius)">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className='rounded-(--radius)'>
+              <SelectContent position="popper" align="start" className='rounded-(--radius)'>
                 <SelectItem value="zinc" className="text-xs rounded-(--radius)">Zinc</SelectItem>
                 <SelectItem value="slate" className="text-xs rounded-(--radius)">Slate</SelectItem>
                 <SelectItem value="stone" className="text-xs rounded-(--radius)">Stone</SelectItem>
@@ -76,7 +76,7 @@ export function AppearanceSettings() {
               <SelectTrigger className="h-9 text-xs rounded-(--radius)">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className='rounded-(--radius)'>
+              <SelectContent position="popper" align="start" className='rounded-(--radius)'>
                 <SelectItem value="blue" className="text-xs rounded-(--radius)">Blue</SelectItem>
                 <SelectItem value="rose" className="text-xs rounded-(--radius)">Rose</SelectItem>
                 <SelectItem value="green" className="text-xs rounded-(--radius)">Green</SelectItem>

@@ -151,8 +151,8 @@ export default function TaskItem({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="rounded-(--radius)">
-                  <DropdownMenuItem onClick={() => onArchive(task.id)}>Archive</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-destructive focus:text-destructive">Delete</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onArchive(task.id)} className="text-xs tracking-wider cursor-pointer">Archive</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-xs tracking-wider text-destructive focus:text-destructive cursor-pointer">Delete</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

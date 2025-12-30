@@ -58,12 +58,14 @@ export function ChartPieInteractive({ data, title = "Time Distribution", descrip
     )
   }
 
-  // Generate chart config and add fill colors to data
   const chartData = React.useMemo(() => {
-    return data.map((item, index) => ({
-      ...item,
-      fill: `var(--chart-${(index % 5) + 1})`,
-    }))
+    return data.map((item, index) => {
+      const key = item.name.toLowerCase().replace(/[^a-z0-9]/g, "-")
+      return {
+        ...item,
+        fill: `var(--color-${key})`,
+      }
+    })
   }, [data])
 
   const config = React.useMemo(() => {
@@ -73,7 +75,8 @@ export function ChartPieInteractive({ data, title = "Time Distribution", descrip
       },
     }
     data.forEach((item, index) => {
-      cfg[item.name] = {
+      const key = item.name.toLowerCase().replace(/[^a-z0-9]/g, "-")
+      cfg[key] = {
         label: item.name,
         color: `var(--chart-${(index % 5) + 1})`,
       }
@@ -83,10 +86,10 @@ export function ChartPieInteractive({ data, title = "Time Distribution", descrip
 
   const [activeItem, setActiveItem] = React.useState(chartData[0].name)
 
-  const activeIndex = React.useMemo(
-    () => chartData.findIndex((item) => item.name === activeItem),
-    [activeItem, chartData]
-  )
+  const activeIndex = React.useMemo(() => {
+    const index = chartData.findIndex((item) => item.name === activeItem)
+    return index !== -1 ? index : 0
+  }, [activeItem, chartData])
 
   return (
     <Card data-chart={id} className="flex flex-col rounded-(--radius) bg-muted/20 border-none">
@@ -104,8 +107,9 @@ export function ChartPieInteractive({ data, title = "Time Distribution", descrip
             <SelectValue placeholder="Select item" />
           </SelectTrigger>
           <SelectContent align="end" className="rounded-(--radius)">
-            {chartData.map((item) => {
-              const itemConfig = config[item.name]
+            {chartData.map((item, index) => {
+              const key = item.name.toLowerCase().replace(/[^a-z0-9]/g, "-")
+              const itemConfig = config[key]
 
               return (
                 <SelectItem
@@ -117,7 +121,7 @@ export function ChartPieInteractive({ data, title = "Time Distribution", descrip
                     <span
                       className="flex h-3 w-3 shrink-0 rounded-xs"
                       style={{
-                        backgroundColor: item.fill,
+                        backgroundColor: `var(--chart-${(index % 5) + 1})`,
                       }}
                     />
                     {itemConfig?.label || item.name}
@@ -188,16 +192,18 @@ export function ChartPieInteractive({ data, title = "Time Distribution", descrip
                           y={viewBox.cy}
                           className="fill-foreground text-xl font-bold font-mono"
                         >
-                          {formatHHMMSS(chartData[activeIndex].duration_ms)}
+                          {chartData[activeIndex] ? formatHHMMSS(chartData[activeIndex].duration_ms) : "00:00:00"}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground text-xs"
                         >
-                          {chartData[activeIndex].name.length > 15 
-                            ? chartData[activeIndex].name.slice(0, 12) + "..."
-                            : chartData[activeIndex].name}
+                          {chartData[activeIndex] 
+                            ? (chartData[activeIndex].name.length > 15 
+                                ? chartData[activeIndex].name.slice(0, 12) + "..."
+                                : chartData[activeIndex].name)
+                            : ""}
                         </tspan>
                       </text>
                     )

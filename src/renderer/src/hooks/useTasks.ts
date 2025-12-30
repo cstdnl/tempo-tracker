@@ -113,6 +113,14 @@ export function useTasks() {
     await loadTasks()
   }, [loadTasks])
 
+  const archiveCollection = useCallback(async (collectionName: string) => {
+    const tasksToArchive = tasks.filter(t => (t.collection || 'default') === collectionName)
+    await Promise.all(
+      tasksToArchive.map(t => window.api.updateTaskStatus(t.id, 'archived'))
+    )
+    await loadTasks()
+  }, [tasks, loadTasks])
+
   const loadSubtasks = useCallback(async (taskId: number) => {
     const list = await window.api.listSubtasksByTask(taskId)
     setSubtasksByTask((prev) => ({ ...prev, [taskId]: list }))
@@ -137,11 +145,11 @@ export function useTasks() {
 
   return useMemo(() => ({
     tasks, runningByTask, loading,
-    addTask, toggleComplete, start, pause, removeTask, archiveTask,
+    addTask, toggleComplete, start, pause, removeTask, archiveTask, archiveCollection,
     subtasksByTask, loadSubtasks, addSubtask, toggleSubtaskComplete, deleteSubtask
   }), [
     tasks, runningByTask, loading,
-    addTask, toggleComplete, start, pause, removeTask, archiveTask,
+    addTask, toggleComplete, start, pause, removeTask, archiveTask, archiveCollection,
     subtasksByTask, loadSubtasks, addSubtask, toggleSubtaskComplete, deleteSubtask
   ])
 }

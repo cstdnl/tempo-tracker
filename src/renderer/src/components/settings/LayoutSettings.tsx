@@ -44,7 +44,7 @@ export function LayoutSettings() {
               <SelectTrigger className="h-9 text-xs rounded-(--radius)">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className='rounded-(--radius)'>
+              <SelectContent position="popper" align="start" className='rounded-(--radius)'>
                 <SelectItem value="sans" className="text-xs rounded-(--radius)">Inter (Sans)</SelectItem>
                 <SelectItem value="mono" className="text-xs rounded-(--radius)">JetBrains (Mono)</SelectItem>
               </SelectContent>
@@ -60,7 +60,7 @@ export function LayoutSettings() {
               <SelectTrigger className="h-9 text-xs rounded-(--radius)">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className='rounded-(--radius)'>
+              <SelectContent position="popper" align="start" className='rounded-(--radius)'>
                 <SelectItem value="0" className="text-xs rounded-(--radius)">0px</SelectItem>
                 <SelectItem value="0.3" className="text-xs rounded-(--radius)">0.3rem</SelectItem>
                 <SelectItem value="0.5" className="text-xs rounded-(--radius)">0.5rem</SelectItem>

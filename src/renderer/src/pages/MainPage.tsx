@@ -15,7 +15,7 @@ import { useCollections } from '@/hooks/useCollections'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Plus, Trash2, Settings2, CheckCircle2 } from 'lucide-react'
+import { Plus, Trash2, Settings2, CheckCircle2, Archive } from 'lucide-react'
 import { Separator } from '@renderer/components/ui/separator'
 import { ScrollArea } from '@renderer/components/ui/scroll-area'
 
@@ -30,6 +30,7 @@ export default function MainPage(): React.JSX.Element {
     pause,
     removeTask,
     archiveTask,
+    archiveCollection,
     subtasksByTask,
     loadSubtasks,
     addSubtask,
@@ -82,27 +83,23 @@ export default function MainPage(): React.JSX.Element {
   return (
     <div className="flex-1 flex flex-col min-h-0 gap-4">
       {/* Top Controls */}
-      <section className="flex items-center gap-2 p-1 bg-muted/30 rounded-(--radius) border shrink-0">
-        {/* Collection selector */}
-        <div className="flex-1 flex items-center gap-2 px-2">
-          <span className="text-[10px] font-bold tracking-wider text-muted-foreground uppercase">Collection</span>
-          <Select value={collection} onValueChange={setCollection}>
-            <SelectTrigger className="h-8 border-none bg-transparent hover:bg-muted/50 transition-colors focus:ring-0 focus:ring-offset-0 px-2 rounded-(--radius) w-[160px]">
-              <SelectValue placeholder="Select a collection" />
-            </SelectTrigger>
-            <SelectContent className="rounded-(--radius)">
-              <SelectItem value="all" className="rounded-(--radius)">All Collections</SelectItem>
-              <SelectItem value="default" className="rounded-(--radius)">Default</SelectItem>
-              {collections.map((c) => (
-                <SelectItem key={c} value={c} className="rounded-(--radius)">
-                  {c.charAt(0).toUpperCase() + c.slice(1)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <Select value={collection} onValueChange={setCollection}>
+          <SelectTrigger className="bg-muted/50 hover:bg-muted transition-colors rounded-(--radius) w-[200px]">
+            <SelectValue placeholder="Select a collection" />
+          </SelectTrigger>
+          <SelectContent position="popper" align="start" className="rounded-(--radius)">
+            <SelectItem value="all" className="rounded-(--radius)">All Collections</SelectItem>
+            <SelectItem value="default" className="rounded-(--radius)">Default</SelectItem>
+            {collections.map((c) => (
+              <SelectItem key={c} value={c} className="rounded-(--radius)">
+                {c.charAt(0).toUpperCase() + c.slice(1)}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <Separator orientation="vertical" className="h-6" />
+        <div className="flex-1" />
 
         {/* Manage Collections Popover */}
         <Popover>
@@ -110,65 +107,74 @@ export default function MainPage(): React.JSX.Element {
             <Button 
               variant="ghost" 
               size="sm" 
-              className="h-8 gap-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-(--radius) px-3"
+              className="gap-2 text-muted-foreground bg-muted/50 hover:bg-muted hover:text-primary transition-all rounded-(--radius) px-3 border-none"
             >
               <Settings2 className="h-3.5 w-3.5" />
               <span className="text-[10px] font-bold tracking-wider uppercase">Manage</span>
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-72 p-0 rounded-(--radius) shadow-lg border-primary/20" align="end">
-            <div className="p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs font-bold tracking-widest uppercase text-muted-foreground">Collections</h4>
-                <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-bold">
-                  {collections.length}
-                </span>
+          <PopoverContent className="w-64 p-0 rounded-(--radius) shadow-xl border-none bg-popover" align="end">
+            <div className="p-3 space-y-3">
+              <div className="flex items-center justify-between px-1">
+                <h4 className="text-[10px] font-bold tracking-[0.2em] uppercase text-muted-foreground/70">Collections</h4>
+                <div className="h-4 px-1.5 flex items-center justify-center bg-muted rounded-full">
+                  <span className="text-[9px] font-bold text-muted-foreground">{collections.length}</span>
+                </div>
               </div>
               
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
                 <Input
-                  placeholder="New collection name..."
+                  placeholder="New collection..."
                   value={newCollectionName}
                   onChange={(e) => setNewCollectionName(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleAddCollection()}
-                  className="h-8 text-xs rounded-(--radius) bg-muted/50 border-none focus-visible:ring-1 focus-visible:ring-primary"
+                  className="h-8 text-xs rounded-(--radius) bg-muted/30 border-none focus-visible:ring-1 focus-visible:ring-primary/30 placeholder:text-muted-foreground/40"
                 />
                 <Button 
                   size="icon" 
-                  className="h-8 w-8 shrink-0 rounded-(--radius) bg-primary hover:bg-primary/90" 
+                  className="h-8 w-8 shrink-0 rounded-(--radius) bg-primary hover:bg-primary/90 shadow-sm" 
                   onClick={handleAddCollection}
                   disabled={!newCollectionName.trim()}
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="h-3.5 w-3.5" />
                 </Button>
               </div>
 
-              <div className="space-y-1 max-h-56 overflow-y-auto pr-1 custom-scrollbar">
+              <div className="space-y-0.5 max-h-48 overflow-y-auto pr-0 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {collections.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-6 text-center space-y-2">
-                    <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                      <Settings2 className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-tight">No custom collections</p>
+                  <div className="flex flex-col items-center justify-center py-8 text-center space-y-2 opacity-40">
+                    <Settings2 className="h-5 w-5 text-muted-foreground" />
+                    <p className="text-[9px] font-bold uppercase tracking-widest">Empty</p>
                   </div>
                 ) : (
-                  <div className="grid gap-1">
+                  <div className="grid gap-0.5">
                     {collections.map((c) => (
                       <div 
                         key={c} 
-                        className="flex items-center justify-between group p-2 rounded-(--radius) hover:bg-muted/50 transition-colors"
+                        className="flex items-center justify-between group px-2 py-1.5 rounded-(--radius) hover:bg-muted/40 transition-all duration-200"
                       >
-                        <span className="text-sm font-medium truncate text-foreground/80 group-hover:text-foreground">
+                        <span className="text-xs font-medium truncate text-foreground/70 group-hover:text-foreground">
                           {c}
                         </span>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-all rounded-(--radius) text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => handleDeleteCollection(c)}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 rounded-(--radius) text-muted-foreground/50 hover:text-primary hover:bg-primary/10"
+                            onClick={() => archiveCollection(c)}
+                            title="Archive all tasks in this collection"
+                          >
+                            <Archive className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 rounded-(--radius) text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => handleDeleteCollection(c)}
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -177,7 +183,7 @@ export default function MainPage(): React.JSX.Element {
             </div>
           </PopoverContent>
         </Popover>
-      </section>
+      </div>
 
       {/* Task stats and Timer - Fixed */}
       <div className="shrink-0 space-y-4">
@@ -211,7 +217,7 @@ export default function MainPage(): React.JSX.Element {
               collection={collection === 'all' ? 'default' : collection}
             />
 
-            <Separator />
+            <Separator className="w-full bg-muted-foreground/70 opacity-50" />
           </div>
 
           {/* Completed Tasks Section */}
