@@ -1,8 +1,113 @@
-import { app, shell, BrowserWindow, ipcMain } from 'electron'
+import { app, shell, BrowserWindow, ipcMain, Menu } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { initDatabase, registerIpcHandlers } from './db'
+
+function navigateTo(page: string): void {
+  const win = BrowserWindow.getAllWindows().find((w) => !w.isMinimized() && w.isResizable())
+  if (win) {
+    win.webContents.send('navigate', page)
+  }
+}
+
+function createMenu(): void {
+  const isMac = process.platform === 'darwin'
+
+  const template: Electron.MenuItemConstructorOptions[] = [
+    ...(isMac
+      ? ([
+          {
+            label: 'Tempo Tracker',
+            submenu: [
+              { role: 'about' },
+              { type: 'separator' },
+              {
+                label: 'Settings...',
+                accelerator: 'CmdOrCtrl+,',
+                click: () => navigateTo('settings')
+              },
+              { type: 'separator' },
+              { role: 'services' },
+              { type: 'separator' },
+              { role: 'hide' },
+              { role: 'hideOthers' },
+              { role: 'unhide' },
+              { type: 'separator' },
+              { role: 'quit' }
+            ] as Electron.MenuItemConstructorOptions[]
+          }
+        ] as Electron.MenuItemConstructorOptions[])
+      : []),
+    {
+      label: 'File',
+      submenu: [
+        {
+          label: 'New Task',
+          accelerator: 'CmdOrCtrl+N',
+          click: () => navigateTo('new-task')
+        },
+        { type: 'separator' },
+        {
+          label: 'All Tasks',
+          accelerator: 'CmdOrCtrl+1',
+          click: () => navigateTo('main')
+        },
+        {
+          label: 'Reports',
+          accelerator: 'CmdOrCtrl+2',
+          click: () => navigateTo('export')
+        },
+        {
+          label: 'Archive',
+          accelerator: 'CmdOrCtrl+3',
+          click: () => navigateTo('archive')
+        }
+      ] as Electron.MenuItemConstructorOptions[]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        { role: 'undo' },
+        { role: 'redo' },
+        { type: 'separator' },
+        { role: 'cut' },
+        { role: 'copy' },
+        { role: 'paste' },
+        { role: 'selectAll' }
+      ] as Electron.MenuItemConstructorOptions[]
+    },
+    {
+      label: 'Window',
+      submenu: [
+        { role: 'minimize' },
+        { role: 'zoom' },
+        ...(isMac
+          ? ([
+              { type: 'separator' },
+              { role: 'front' },
+              { type: 'separator' },
+              { role: 'window' }
+            ] as Electron.MenuItemConstructorOptions[])
+          : ([{ role: 'close' }] as Electron.MenuItemConstructorOptions[]))
+      ] as Electron.MenuItemConstructorOptions[]
+    },
+    {
+      role: 'help',
+      submenu: [
+        {
+          label: 'Documentation',
+          click: async () => {
+            await shell.openExternal('https://github.com/cstdnl/tempo-tracker')
+          }
+        }
+      ] as Electron.MenuItemConstructorOptions[]
+    }
+  ]
+
+  const menu = Menu.buildFromTemplate(template)
+  Menu.setApplicationMenu(menu)
+}
 
 function createWindow(): void {
   // Create the browser window.
@@ -32,8 +137,6 @@ function createWindow(): void {
     return { action: 'deny' }
   })
 
-  // HMR for renderer base on electron-vite cli.
-  // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
@@ -48,19 +151,37 @@ app.whenReady().then(() => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)
   })
 
-  // IPC test
-  ipcMain.on('ping', () => console.log('pong'))
-
   // Initialize SQLite and register backend IPC handlers
   initDatabase()
   registerIpcHandlers()
+  createMenu()
+
+  ipcMain.on('window/focus-mode', (event, enabled: boolean) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (!win) return
+
+    if (enabled) {
+      win.setMinimumSize(320, 120)
+      win.setSize(320, 120)
+      win.setAlwaysOnTop(true)
+      win.setResizable(false)
+      if (process.platform === 'darwin') {
+        win.setWindowButtonVisibility(false)
+      }
+    } else {
+      win.setResizable(true)
+      win.setMinimumSize(450, 720)
+      win.setSize(450, 720)
+      win.setAlwaysOnTop(false)
+      if (process.platform === 'darwin') {
+        win.setWindowButtonVisibility(true)
+      }
+    }
+  })
 
   createWindow()
 
@@ -79,6 +200,3 @@ app.on('window-all-closed', () => {
     app.quit()
   }
 })
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.

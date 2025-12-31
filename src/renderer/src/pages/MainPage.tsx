@@ -19,26 +19,44 @@ import { Plus, Trash2, Settings2, CheckCircle2, Archive } from 'lucide-react'
 import { Separator } from '@renderer/components/ui/separator'
 import { ScrollArea } from '@renderer/components/ui/scroll-area'
 
-export default function MainPage(): React.JSX.Element {
-  const {
-    tasks,
-    runningByTask,
-    loading,
-    addTask,
-    toggleComplete,
-    start,
-    pause,
-    removeTask,
-    archiveTask,
-    archiveCollection,
-    subtasksByTask,
-    loadSubtasks,
-    addSubtask,
-    toggleSubtaskComplete,
-    deleteSubtask
-  } = useTasks()
+interface MainPageProps {
+  tasks: Task[]
+  runningByTask: Record<number, TimeEntry | null>
+  loading: boolean
+  addTask: (title: string, description?: string | null, collection?: string | null) => Promise<void>
+  toggleComplete: (taskId: number, completed: boolean) => Promise<void>
+  start: (taskId: number) => Promise<void>
+  pause: (taskId: number) => Promise<void>
+  removeTask: (taskId: number) => Promise<void>
+  archiveTask: (taskId: number) => Promise<void>
+  subtasksByTask: Record<number, Subtask[]>
+  loadSubtasks: (taskId: number) => Promise<void> | void
+  addSubtask: (taskId: number, title: string) => Promise<void> | void
+  toggleSubtaskComplete: (subtaskId: number, completed: boolean, taskId: number) => Promise<void> | void
+  deleteSubtask: (subtaskId: number, taskId: number) => Promise<void> | void
+  onEnterFocus: (taskId: number) => void
+}
 
+export default function MainPage({
+  tasks,
+  runningByTask,
+  loading,
+  addTask,
+  toggleComplete,
+  start,
+  pause,
+  removeTask,
+  archiveTask,
+  subtasksByTask,
+  loadSubtasks,
+  addSubtask,
+  toggleSubtaskComplete,
+  deleteSubtask,
+  onEnterFocus
+}: MainPageProps): React.JSX.Element {
   const { collections, addCollection, deleteCollection } = useCollections()
+  const { archiveCollection } = useTasks()
+
   const [collection, setCollection] = useState<string>('all')
   const [newCollectionName, setNewCollectionName] = useState('')
   const [showCompleted, setShowCompleted] = useState(true)
@@ -205,6 +223,7 @@ export default function MainPage(): React.JSX.Element {
               onPause={pause}
               onDelete={removeTask}
               onArchive={archiveTask}
+              onEnterFocus={onEnterFocus}
               subtasksByTask={subtasksByTask}
               loadSubtasks={loadSubtasks}
               addSubtask={addSubtask}
@@ -250,6 +269,7 @@ export default function MainPage(): React.JSX.Element {
                     onPause={pause}
                     onDelete={removeTask}
                     onArchive={archiveTask}
+                    onEnterFocus={onEnterFocus}
                     subtasksByTask={subtasksByTask}
                     loadSubtasks={loadSubtasks}
                     addSubtask={addSubtask}

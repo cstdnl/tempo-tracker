@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   InputGroup,
@@ -25,6 +25,24 @@ export default function AddTaskBar({
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [touched, setTouched] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Cmd+N or Ctrl+N
+      if ((e.metaKey || e.ctrlKey) && e.key === 'n') {
+        e.preventDefault()
+        setExpanded(true)
+      }
+      // Esc to close if expanded
+      if (e.key === 'Escape' && expanded) {
+        handleCancel()
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [expanded])
 
   const isTitleInvalid = touched && !title.trim()
 

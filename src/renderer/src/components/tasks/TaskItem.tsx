@@ -9,19 +9,20 @@ import {
   CardContent,
   CardHeader,
 } from "@/components/ui/card"
-import { Check, ChevronDownIcon, MoreHorizontal, Pause, Play } from 'lucide-react'
+import { Check, ChevronDownIcon, MoreHorizontal, Pause, Play, Target, Archive, Trash2 } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { cn } from "@/lib/utils"
 import { CircularProgress } from '@renderer/components/ui-custom/progress-circular'
 
 interface TaskItemProps {
   task: Task
-  running: boolean
+  running: boolean 
   onToggleComplete: (taskId: number, completed: boolean) => void
   onStart: (taskId: number) => void
   onPause: (taskId: number) => void
   onDelete: (taskId: number) => void
   onArchive: (taskId: number) => void
+  onEnterFocus: (taskId: number) => void
 }
 
 export default function TaskItem({
@@ -32,6 +33,7 @@ export default function TaskItem({
   onPause,
   onDelete,
   onArchive,
+  onEnterFocus,
   // new props passed through TaskList → MainPage → useTasks
   loadSubtasks,
   subtasks,
@@ -150,9 +152,25 @@ export default function TaskItem({
                     <MoreHorizontal className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="rounded-(--radius)">
-                  <DropdownMenuItem onClick={() => onArchive(task.id)} className="text-xs tracking-wider cursor-pointer">Archive</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onDelete(task.id)} className="text-xs tracking-wider text-destructive focus:text-destructive cursor-pointer">Delete</DropdownMenuItem>
+                <DropdownMenuContent align="end" className="rounded-(--radius) min-w-[120px]">
+                  <DropdownMenuItem 
+                    onClick={() => onEnterFocus(task.id)}
+                    className="text-xs tracking-wider cursor-pointer"
+                  >
+                    Focus
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => onArchive(task.id)}
+                    className="text-xs tracking-wider cursor-pointer"
+                  >
+                    Archive
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => onDelete(task.id)} 
+                    className="text-xs tracking-wider text-destructive focus:text-destructive cursor-pointer"
+                  >
+                    Delete
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

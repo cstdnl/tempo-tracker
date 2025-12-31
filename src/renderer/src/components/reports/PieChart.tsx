@@ -106,7 +106,7 @@ export function ChartPieInteractive({ data, title = "Time Distribution", descrip
           >
             <SelectValue placeholder="Select item" />
           </SelectTrigger>
-          <SelectContent align="end" className="rounded-(--radius)">
+          <SelectContent position="popper" align="end" className="rounded-(--radius)">
             {chartData.map((item, index) => {
               const key = item.name.toLowerCase().replace(/[^a-z0-9]/g, "-")
               const itemConfig = config[key]

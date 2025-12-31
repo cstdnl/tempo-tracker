@@ -1,15 +1,79 @@
 import Shell from './app/Shell'
 import MainPage from './pages/MainPage'
-import React, { useState } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import ReportPage from './pages/ReportPage'
 import SettingsPage from './pages/SettingsPage'
 import ArchivePage from './pages/ArchivePage'
+import FocusPage from './pages/FocusPage'
 import { Settings as SettingsIcon, ListTodo, BarChart3, Archive } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
+import { useTasks } from './hooks/useTasks'
 
 function App(): React.JSX.Element {
   const [page, setPage] = useState<'main' | 'archive' | 'export' | 'settings'>('main')
+  const [focusTaskId, setFocusTaskId] = useState<number | null>(null)
+
+  const {
+    tasks,
+    runningByTask,
+    loading,
+    addTask,
+    toggleComplete,
+    start,
+    pause,
+    removeTask,
+    archiveTask,
+    subtasksByTask,
+    loadSubtasks,
+    addSubtask,
+    toggleSubtaskComplete,
+    deleteSubtask
+  } = useTasks()
+
+  useEffect(() => {
+    window.api.onNavigate((targetPage) => {
+      if (targetPage === 'new-task') {
+        setPage('main')
+        setTimeout(() => {
+          window.dispatchEvent(new KeyboardEvent('keydown', {
+            key: 'n',
+            metaKey: process.platform === 'darwin',
+            ctrlKey: process.platform !== 'darwin',
+            bubbles: true
+          }))
+        }, 50)
+      } else {
+        setPage(targetPage)
+      }
+    })
+  }, [])
+
+  const handleEnterFocus = useCallback((taskId: number) => {
+    setFocusTaskId(taskId)
+    window.api.setFocusMode(true)
+  }, [])
+
+  const handleExitFocus = useCallback(() => {
+    setFocusTaskId(null)
+    window.api.setFocusMode(false)
+  }, [])
+
+  if (focusTaskId !== null) {
+    const task = tasks.find((t) => t.id === focusTaskId)
+    if (task) {
+      return (
+        <FocusPage
+          task={task}
+          entry={runningByTask[focusTaskId] || null}
+          onStart={start}
+          onPause={pause}
+          onExit={handleExitFocus}
+        />
+      )
+    }
+  }
+
 
   const pageTitles = {
     main: 'Tasks',
@@ -84,7 +148,23 @@ function App(): React.JSX.Element {
       </header>
 
       {page === 'main' ? (
-        <MainPage />
+        <MainPage
+          tasks={tasks}
+          runningByTask={runningByTask}
+          loading={loading}
+          addTask={addTask}
+          toggleComplete={toggleComplete}
+          start={start}
+          pause={pause}
+          removeTask={removeTask}
+          archiveTask={archiveTask}
+          subtasksByTask={subtasksByTask}
+          loadSubtasks={loadSubtasks}
+          addSubtask={addSubtask}
+          toggleSubtaskComplete={toggleSubtaskComplete}
+          deleteSubtask={deleteSubtask}
+          onEnterFocus={handleEnterFocus}
+        />
       ) : page === 'archive' ? (
         <ArchivePage />
       ) : page === 'export' ? (

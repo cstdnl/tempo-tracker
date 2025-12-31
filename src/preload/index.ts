@@ -37,6 +37,12 @@ const api = {
   // Data management
   exportData: () => ipcRenderer.invoke('data/export'),
   importData: (jsonString: string) => ipcRenderer.invoke('data/import', { jsonString }),
+
+  // Navigation
+  onNavigate: (callback: (page: 'main' | 'archive' | 'export' | 'settings') => void) =>
+    ipcRenderer.on('navigate', (_event, page) => callback(page)),
+  // Window Management
+  setFocusMode: (enabled: boolean) => ipcRenderer.send('window/focus-mode', enabled),
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

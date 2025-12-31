@@ -53,6 +53,8 @@ declare global {
       }>
       exportData: () => Promise<string>
       importData: (jsonString: string) => Promise<{ success: boolean; error?: string }>
+      onNavigate: (callback: (page: 'main' | 'archive' | 'export' | 'settings' | 'new-task') => void) => void
+      setFocusMode: (enabled: boolean) => void
     }
   }
 }
