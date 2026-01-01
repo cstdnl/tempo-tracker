@@ -5,6 +5,18 @@ Tempo Tracker is a task management application built with electron-vite, designe
 Data is stored locally using SQLite3, ensuring privacy and performance. For portability, the application supports moving data between different machines through JSON export and import functionality available in the settings.
 
 ---
+## Screenshots
+
+<img width="485" height="807" alt="Screenshot 2026-01-01 at 19 53 40" src="https://github.com/user-attachments/assets/ff34e0fc-24be-4400-b0ee-e4ad0c7310e6" />
+<img width="509" height="812" alt="Screenshot 2026-01-01 at 19 49 45" src="https://github.com/user-attachments/assets/7cd06b22-4ef3-419e-87c9-34437530c5e4" />
+<img width="492" height="803" alt="Screenshot 2026-01-01 at 19 50 36" src="https://github.com/user-attachments/assets/02d355ff-4aa9-4319-bacc-9ffc7d8da1ea" />
+<img width="480" height="801" alt="Screenshot 2026-01-01 at 19 51 33" src="https://github.com/user-attachments/assets/092ebe50-0f81-44e5-9ed4-bba1fd53c9a5" />
+<img width="475" height="810" alt="Screenshot 2026-01-01 at 19 52 19" src="https://github.com/user-attachments/assets/3e9d2b51-f879-442e-af71-8559b9d290d2" />
+<img width="490" height="790" alt="Screenshot 2026-01-01 at 19 52 45" src="https://github.com/user-attachments/assets/13827479-35df-4093-bdb1-f5f7e79813bf" />
+<img width="366" height="163" alt="Screenshot 2026-01-01 at 19 54 27" src="https://github.com/user-attachments/assets/421d0648-1990-4d9d-bcbc-23d90a2c498c" />
+<img width="380" height="186" alt="Screenshot 2026-01-01 at 19 53 48" src="https://github.com/user-attachments/assets/12eb1295-8456-473c-a091-0f786251b80d" />
+
+---
 
 ## Getting Started
 
