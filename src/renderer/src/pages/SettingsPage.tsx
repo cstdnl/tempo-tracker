@@ -37,7 +37,7 @@ export default function SettingsPage(): React.JSX.Element {
       <div className="p-4 backdrop-blur-sm z-20 flex flex-col items-center gap-2 opacity-50">
         <Separator className="w-full bg-muted-foreground/70" />
         <div className="flex items-center pt-2 gap-4 text-[10px] font-medium uppercase tracking-widest">
-          <span>Tracker v1.0.0</span>
+          <span>Tracker v1.0.1</span>
           <span className="w-1 h-1 rounded-full bg-muted-foreground" />
           <span>Built with Electron & Shadcn UI</span>
         </div>
