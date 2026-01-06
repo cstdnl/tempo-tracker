@@ -12,12 +12,14 @@ import AddTaskBar from '@/components/tasks/AddTaskBar'
 import { useTasks } from '@/hooks/useTasks'
 import TimerStatus from '@/components/tasks/TimerStatus'
 import { useCollections } from '@/hooks/useCollections'
+import { useCollectionContext } from '@/contexts/CollectionContext'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus, Trash2, Settings2, CheckCircle2, Archive } from 'lucide-react'
 import { Separator } from '@renderer/components/ui/separator'
 import { ScrollArea } from '@renderer/components/ui/scroll-area'
+import { cn } from '@renderer/lib/utils'
 
 interface MainPageProps {
   tasks: Task[]
@@ -56,8 +58,8 @@ export default function MainPage({
 }: MainPageProps): React.JSX.Element {
   const { collections, addCollection, deleteCollection } = useCollections()
   const { archiveCollection } = useTasks()
+  const { selectedCollection: collection, setSelectedCollection: setCollection } = useCollectionContext()
 
-  const [collection, setCollection] = useState<string>('all')
   const [newCollectionName, setNewCollectionName] = useState('')
   const [showCompleted, setShowCompleted] = useState(true)
 
@@ -98,16 +100,46 @@ export default function MainPage({
     return null
   }, [filteredTasks, runningByTask])
 
+  // Helper to get initials and color for the badge
+  const getCollectionBadge = (name: string) => {
+    if (name === 'all') return { text: 'AL', style: { backgroundColor: 'var(--muted)' }, className: 'text-muted-foreground' }
+    if (name === 'default') return { text: 'DF', style: { backgroundColor: 'var(--muted)' }, className: 'text-muted-foreground' }
+    
+    const initials = name
+      .split(/[\s-_]+/)
+      .map(word => word[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2)
+    
+    const index = collections.indexOf(name)
+    const colorVar = `var(--chart-${((index !== -1 ? index : 0) % 5) + 1})`
+    
+    return { text: initials, style: { backgroundColor: colorVar }, className: 'text-white' }
+  }
+
+  const badge = getCollectionBadge(collection)
+
   return (
     <div className="flex-1 flex flex-col min-h-0 gap-4">
       {/* Top Controls */}
       <div className="flex items-center gap-2 shrink-0">
+        <div 
+          className={cn(
+            "flex items-center justify-center w-8 h-8 rounded-md text-[10px] font-bold shrink-0 shadow-sm transition-all",
+            badge.className
+          )}
+          style={badge.style}
+        >
+          {badge.text}
+        </div>
+
         <Select value={collection} onValueChange={setCollection}>
           <SelectTrigger className="bg-muted/50 hover:bg-muted transition-colors rounded-(--radius) w-[200px]">
             <SelectValue placeholder="Select a collection" />
           </SelectTrigger>
           <SelectContent position="popper" align="start" className="rounded-(--radius)">
-            <SelectItem value="all" className="rounded-(--radius)">All Collections</SelectItem>
+            <SelectItem value="all" className="rounded-(--radius)">All</SelectItem>
             <SelectItem value="default" className="rounded-(--radius)">Default</SelectItem>
             {collections.map((c) => (
               <SelectItem key={c} value={c} className="rounded-(--radius)">

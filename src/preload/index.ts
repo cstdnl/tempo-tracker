@@ -33,6 +33,8 @@ const api = {
     ipcRenderer.invoke('report/exportCsv', filters),
   exportTimeStats: (filters: { taskId?: number | null; collection?: string | null; from?: number | null; to?: number | null }) =>
     ipcRenderer.invoke('report/stats', filters),
+  exportTimeHistory: (filters: { collection?: string | null; from?: number | null; to?: number | null }) =>
+    ipcRenderer.invoke('report/history', filters),
 
   // Data management
   exportData: () => ipcRenderer.invoke('data/export'),

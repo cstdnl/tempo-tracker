@@ -92,7 +92,7 @@ export function ChartPieInteractive({ data, title = "Time Distribution", descrip
   }, [activeItem, chartData])
 
   return (
-    <Card data-chart={id} className="flex flex-col rounded-(--radius) bg-muted/20 border-none">
+    <Card data-chart={id} className="flex flex-col rounded-(--radius) border-none">
       <ChartStyle id={id} config={config} />
       <CardHeader className="flex-row items-start space-y-0 pb-0">
         <div className="grid gap-1">
