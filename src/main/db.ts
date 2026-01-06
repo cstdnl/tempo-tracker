@@ -278,6 +278,11 @@ export function registerIpcHandlers(): void {
     (_e, payload: { taskId?: number | null; collection?: string | null; from?: number | null; to?: number | null }) =>
       reportTimeStats(payload)
   )
+  ipcMain.handle(
+    'report/history',
+    (_e, payload: { collection?: string | null; from?: number | null; to?: number | null }) =>
+      reportTimeHistory(payload)
+  )
 
   // Data management
   ipcMain.handle('data/export', () => exportData())
@@ -364,6 +369,63 @@ function reportTimeStats(filters: { taskId?: number | null; collection?: string 
     total_days: days.size,
     per_task: Array.from(map.values()).sort((a, b) => b.duration_ms - a.duration_ms)
   }
+}
+
+function reportTimeHistory(filters: { collection?: string | null; from?: number | null; to?: number | null }): Array<{ date: string; duration_ms: number }> {
+  const database = ensureDb()
+  const where: string[] = []
+  const params: any[] = []
+
+  if (filters.collection && filters.collection !== 'all') {
+    if (filters.collection === 'default') {
+      where.push('t.collection IS NULL')
+    } else {
+      where.push('t.collection = ?')
+      params.push(filters.collection)
+    }
+  }
+  if (filters.from) {
+    where.push('e.start_at >= ?')
+    params.push(filters.from)
+  }
+  if (filters.to) {
+    where.push('e.start_at <= ?')
+    params.push(filters.to)
+  }
+
+  const sql = `
+    SELECT
+      e.start_at,
+      e.end_at,
+      e.duration_ms
+    FROM time_entries e
+    LEFT JOIN tasks t ON t.id = e.task_id
+    ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+    ORDER BY e.start_at ASC
+  `
+  const rows = database.prepare(sql).all(...params) as Array<{
+    start_at: number
+    end_at: number | null
+    duration_ms: number | null
+  }>
+
+  const now = Date.now()
+  const historyMap = new Map<string, number>()
+
+  for (const r of rows) {
+    const endMs = r.end_at ?? now
+    const durationMs = Math.max(0, endMs - r.start_at)
+    
+    const date = new Date(r.start_at)
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    
+    historyMap.set(dateStr, (historyMap.get(dateStr) || 0) + durationMs)
+  }
+
+  return Array.from(historyMap.entries()).map(([date, duration_ms]) => ({
+    date,
+    duration_ms
+  }))
 }
 
 function exportTimeCsv(filters: { taskId?: number | null; collection?: string | null; from?: number | null; to?: number | null }): string {

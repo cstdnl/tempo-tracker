@@ -51,6 +51,7 @@ declare global {
         total_days: number
         per_task: Array<{ task_id: number; task_title: string | null; duration_ms: number }>
       }>
+      exportTimeHistory: (filters: { collection?: string | null; from?: number | null; to?: number | null }) => Promise<Array<{ date: string; duration_ms: number }>>
       exportData: () => Promise<string>
       importData: (jsonString: string) => Promise<{ success: boolean; error?: string }>
       onNavigate: (callback: (page: 'main' | 'archive' | 'export' | 'settings' | 'new-task') => void) => void
