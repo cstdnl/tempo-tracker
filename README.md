@@ -1,5 +1,8 @@
 # Tempo Tracker
 
+<img width="125" height="125" alt="icon" src="https://github.com/user-attachments/assets/4475b639-9038-491e-878e-335a5c8cae4a" />
+
+
 Tempo Tracker is a task management application built with electron-vite, designed with a primary focus on the time tracking aspect of productivity. It allows users to organize work into different task collections while providing detailed reporting on time allocation.
 
 Data is stored locally using SQLite3, ensuring privacy and performance. For portability, the application supports moving data between different machines through JSON export and import functionality available in the settings.
