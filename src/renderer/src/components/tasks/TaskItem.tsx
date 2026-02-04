@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import SubtasksPanel from './SubtasksPanel'
+import EditTaskDialog from './EditTaskDialog'
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
@@ -9,10 +10,11 @@ import {
   CardContent,
   CardHeader,
 } from "@/components/ui/card"
-import { Check, ChevronDownIcon, MoreHorizontal, Pause, Play, Target, Archive, Trash2 } from 'lucide-react'
+import { Check, ChevronDownIcon, MoreHorizontal, Pause, Play, Target, Archive, Trash2, Edit } from 'lucide-react'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { cn } from "@/lib/utils"
 import { CircularProgress } from '@renderer/components/ui-custom/progress-circular'
+import { Badge } from '@/components/ui/badge'
 
 interface TaskItemProps {
   task: Task
@@ -23,6 +25,7 @@ interface TaskItemProps {
   onDelete: (taskId: number) => void
   onArchive: (taskId: number) => void
   onEnterFocus: (taskId: number) => void
+  onUpdate: (id: number, updates: { title?: string, description?: string | null, tags?: string[] }) => Promise<void>
 }
 
 export default function TaskItem({
@@ -34,6 +37,7 @@ export default function TaskItem({
   onDelete,
   onArchive,
   onEnterFocus,
+  onUpdate,
   // new props passed through TaskList → MainPage → useTasks
   loadSubtasks,
   subtasks,
@@ -48,6 +52,7 @@ export default function TaskItem({
   deleteSubtask: (subtaskId: number, taskId: number) => Promise<void> | void
 }): React.JSX.Element {
   const [showSubtasks, setShowSubtasks] = useState(false)
+  const [isEditOpen, setIsEditOpen] = useState(false)
 
   useEffect(() => {
     if (showSubtasks) {
@@ -159,6 +164,12 @@ export default function TaskItem({
                   >
                     Focus
                   </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setIsEditOpen(true)}
+                    className="text-xs tracking-wider cursor-pointer"
+                  >
+                    Edit
+                  </DropdownMenuItem>
                   <DropdownMenuItem 
                     onClick={() => onArchive(task.id)}
                     className="text-xs tracking-wider cursor-pointer"
@@ -178,7 +189,16 @@ export default function TaskItem({
 
           <CollapsibleContent>
             <CardContent className="px-3">
-              <div className="py-2">
+              <div className="py-2 flex flex-col gap-4">
+                {task.tags && task.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-2 border-t border-muted-foreground/5">
+                    {task.tags.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="text-[10px] px-1.5 py-0.5 h-5 font-medium bg-muted/50">
+                        #{tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
                 <SubtasksPanel
                   taskId={task.id}
                   subtasks={subtasks}
@@ -191,6 +211,12 @@ export default function TaskItem({
           </CollapsibleContent>
         </Collapsible>
       </li>
+      <EditTaskDialog
+        task={task}
+        open={isEditOpen}
+        onOpenChange={setIsEditOpen}
+        onUpdate={onUpdate}
+      />
     </Card>
   )
 }

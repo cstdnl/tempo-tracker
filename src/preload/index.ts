@@ -3,11 +3,13 @@ import { electronAPI } from '@electron-toolkit/preload'
 
 const api = {
   // Tasks
-  createTask: (title: string, description?: string | null, collection?: string | null) =>
-    ipcRenderer.invoke('tasks/create', { title, description: description ?? null, collection: collection ?? null }),
+  createTask: (title: string, description?: string | null, collection?: string | null, tags?: string[]) =>
+    ipcRenderer.invoke('tasks/create', { title, description: description ?? null, collection: collection ?? null, tags: tags ?? [] }),
   listTasks: () => ipcRenderer.invoke('tasks/list'),
   updateTaskStatus: (id: number, status: 'active' | 'completed' | 'archived') =>
     ipcRenderer.invoke('tasks/updateStatus', { id, status }),
+  updateTask: (id: number, updates: { title?: string, description?: string | null, collection?: string | null, tags?: string[] }) =>
+    ipcRenderer.invoke('tasks/update', { id, updates }),
   deleteTask: (id: number) => ipcRenderer.invoke('tasks/delete', { id }),
 
   // Collections

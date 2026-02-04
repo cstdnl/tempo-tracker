@@ -18,14 +18,14 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus, Trash2, Settings2, CheckCircle2, Archive } from 'lucide-react'
 import { Separator } from '@renderer/components/ui/separator'
-import { ScrollArea } from '@renderer/components/ui/scroll-area'
+import { ScrollArea, ScrollBar } from '@renderer/components/ui/scroll-area'
 import { cn } from '@renderer/lib/utils'
 
 interface MainPageProps {
   tasks: Task[]
   runningByTask: Record<number, TimeEntry | null>
   loading: boolean
-  addTask: (title: string, description?: string | null, collection?: string | null) => Promise<void>
+  addTask: (title: string, description?: string | null, collection?: string | null, tags?: string[]) => Promise<void>
   toggleComplete: (taskId: number, completed: boolean) => Promise<void>
   start: (taskId: number) => Promise<void>
   pause: (taskId: number) => Promise<void>
@@ -37,6 +37,7 @@ interface MainPageProps {
   toggleSubtaskComplete: (subtaskId: number, completed: boolean, taskId: number) => Promise<void> | void
   deleteSubtask: (subtaskId: number, taskId: number) => Promise<void> | void
   onEnterFocus: (taskId: number) => void
+  updateTask: (id: number, updates: { title?: string, description?: string | null, tags?: string[] }) => Promise<void>
 }
 
 export default function MainPage({
@@ -54,7 +55,8 @@ export default function MainPage({
   addSubtask,
   toggleSubtaskComplete,
   deleteSubtask,
-  onEnterFocus
+  onEnterFocus,
+  updateTask
 }: MainPageProps): React.JSX.Element {
   const { collections, addCollection, deleteCollection } = useCollections()
   const { archiveCollection } = useTasks()
@@ -62,11 +64,27 @@ export default function MainPage({
 
   const [newCollectionName, setNewCollectionName] = useState('')
   const [showCompleted, setShowCompleted] = useState(true)
+  const [selectedTag, setSelectedTag] = useState<string | null>(null)
+
+  const allTags = useMemo(() => {
+    const tags = new Set<string>()
+    tasks.forEach(task => {
+      task.tags?.forEach(tag => tags.add(tag))
+    })
+    return Array.from(tags).sort()
+  }, [tasks])
 
   const filteredTasks = useMemo(() => {
-    if (collection === 'all') return tasks
-    return tasks.filter((t) => (t.collection ?? 'default') === collection)
-  }, [tasks, collection])
+    let filtered = collection === 'all' 
+      ? tasks 
+      : tasks.filter((t) => (t.collection ?? 'default') === collection)
+    
+    if (selectedTag) {
+      filtered = filtered.filter(t => t.tags?.includes(selectedTag))
+    }
+    
+    return filtered
+  }, [tasks, collection, selectedTag])
 
   const activeTasks = useMemo(() => {
     return filteredTasks.filter((t) => t.status !== 'completed')
@@ -241,6 +259,39 @@ export default function MainPage({
         <TimerStatus entry={currentRunning?.entry ?? null} />
       </div>
 
+      {/* Tag Filter - Horizontal Scroll */}
+      {allTags.length > 0 && (
+        <div className="shrink-0 -mx-4 px-4">
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex w-max gap-2 pb-1">
+              <Button
+                variant={selectedTag === null ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setSelectedTag(null)}
+                className="h-7 px-3 text-[10px] font-bold uppercase tracking-wider rounded-(--radius) text-muted-foreground"
+              >
+                All Tags
+              </Button>
+              {allTags.map(tag => (
+                <Button
+                  key={tag}
+                  variant={selectedTag === tag ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+                  className={cn(
+                    "h-7 px-3 text-[10px] font-bold uppercase tracking-wider rounded-(--radius) text-muted-foreground",
+                    selectedTag === tag && "bg-primary/10 text-primary hover:bg-primary/20"
+                  )}
+                >
+                  #{tag}
+                </Button>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
+      )}
+
       {/* Scrollable Area for Tasks */}
       <ScrollArea className="flex-1 min-h-0 -mx-4 px-4">
         <div className="space-y-6 pb-6">
@@ -256,6 +307,7 @@ export default function MainPage({
               onDelete={removeTask}
               onArchive={archiveTask}
               onEnterFocus={onEnterFocus}
+              onUpdate={updateTask}
               subtasksByTask={subtasksByTask}
               loadSubtasks={loadSubtasks}
               addSubtask={addSubtask}
@@ -300,11 +352,12 @@ export default function MainPage({
                     onStart={start}
                     onPause={pause}
                     onDelete={removeTask}
-                    onArchive={archiveTask}
-                    onEnterFocus={onEnterFocus}
-                    subtasksByTask={subtasksByTask}
-                    loadSubtasks={loadSubtasks}
-                    addSubtask={addSubtask}
+              onArchive={archiveTask}
+              onEnterFocus={onEnterFocus}
+              onUpdate={updateTask}
+              subtasksByTask={subtasksByTask}
+              loadSubtasks={loadSubtasks}
+              addSubtask={addSubtask}
                     toggleSubtaskComplete={toggleSubtaskComplete}
                     deleteSubtask={deleteSubtask}
                     className="opacity-60 grayscale-[0.5] hover:opacity-100 hover:grayscale-0 transition-all duration-300"

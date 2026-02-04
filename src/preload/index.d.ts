@@ -10,6 +10,7 @@ declare global {
     status: TaskStatus
     created_at: number
     collection: string | null
+    tags: string[]
   }
 
   interface TimeEntry {
@@ -30,9 +31,10 @@ declare global {
 
   interface Window {
     api: {
-      createTask: (title: string, description?: string | null, collection?: string | null) => Promise<Task>
+      createTask: (title: string, description?: string | null, collection?: string | null, tags?: string[]) => Promise<Task>
       listTasks: () => Promise<Task[]>
       updateTaskStatus: (id: number, status: TaskStatus) => Promise<Task>
+      updateTask: (id: number, updates: { title?: string, description?: string | null, collection?: string | null, tags?: string[] }) => Promise<Task>
       deleteTask: (id: number) => Promise<void>
       listCollections: () => Promise<string[]>
       addCollection: (name: string) => Promise<void>

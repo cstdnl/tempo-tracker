@@ -28,7 +28,8 @@ function App(): React.JSX.Element {
     loadSubtasks,
     addSubtask,
     toggleSubtaskComplete,
-    deleteSubtask
+    deleteSubtask,
+    updateTask
   } = useTasks()
 
   useEffect(() => {
@@ -164,6 +165,7 @@ function App(): React.JSX.Element {
           toggleSubtaskComplete={toggleSubtaskComplete}
           deleteSubtask={deleteSubtask}
           onEnterFocus={handleEnterFocus}
+          updateTask={updateTask}
         />
       ) : page === 'archive' ? (
         <ArchivePage />

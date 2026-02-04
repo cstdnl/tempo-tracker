@@ -43,9 +43,14 @@ export function useTasks() {
     loadTasks()
   }, [loadTasks])
 
-  const addTask = useCallback(async (title: string, description?: string | null, collection?: string | null) => {
+  const addTask = useCallback(async (title: string, description?: string | null, collection?: string | null, tags?: string[]) => {
     if (!title.trim()) return
-    await window.api.createTask(title.trim(), description?.trim() || null, collection ?? null)
+    await window.api.createTask(title.trim(), description?.trim() || null, collection ?? null, tags)
+    await loadTasks()
+  }, [loadTasks])
+
+  const updateTask = useCallback(async (id: number, updates: { title?: string, description?: string | null, collection?: string | null, tags?: string[] }) => {
+    await window.api.updateTask(id, updates)
     await loadTasks()
   }, [loadTasks])
 
@@ -145,8 +150,12 @@ export function useTasks() {
 
   return useMemo(() => ({
     tasks, runningByTask, loading,
-    addTask, toggleComplete, start, pause, removeTask, archiveTask, archiveCollection,
-    subtasksByTask, loadSubtasks, addSubtask, toggleSubtaskComplete, deleteSubtask
+    addTask, toggleComplete, start, pause, removeTask,
+    archiveTask,
+    archiveCollection,
+    updateTask,
+    subtasksByTask,
+    loadSubtasks, addSubtask, toggleSubtaskComplete, deleteSubtask
   }), [
     tasks, runningByTask, loading,
     addTask, toggleComplete, start, pause, removeTask, archiveTask, archiveCollection,

@@ -13,6 +13,7 @@ export interface Task {
   status: TaskStatus
   created_at: number
   collection: string | null
+  tags: string[]
 }
 
 export interface TimeEntry {
@@ -75,6 +76,13 @@ function createTables(database: Database): void {
   if (!hasCollection) {
     database.exec("ALTER TABLE tasks ADD COLUMN collection TEXT")
   }
+
+  const hasTags = database
+    .prepare("SELECT name FROM pragma_table_info('tasks') WHERE name = 'tags'")
+    .get()
+  if (!hasTags) {
+    database.exec("ALTER TABLE tasks ADD COLUMN tags TEXT")
+  }
 }
 
 export function initDatabase(): void {
@@ -91,33 +99,111 @@ function ensureDb(): Database {
 
 // Task operations
 
-function createTask(title: string, description?: string | null, collection?: string | null): Task {
+function createTask(
+  title: string,
+  description?: string | null,
+  collection?: string | null,
+  tags: string[] = []
+): Task {
   const database = ensureDb()
   const createdAt = Date.now()
+  const tagsJson = JSON.stringify(tags)
   const stmt = database.prepare(
-    'INSERT INTO tasks (title, description, status, created_at, collection) VALUES (?, ?, ?, ?, ?)'
+    'INSERT INTO tasks (title, description, status, created_at, collection, tags) VALUES (?, ?, ?, ?, ?, ?)'
   )
-  const info = stmt.run(title, description ?? null, 'active', createdAt, collection ?? null)
+  const info = stmt.run(title, description ?? null, 'active', createdAt, collection ?? null, tagsJson)
   const row = database
-    .prepare('SELECT id, title, description, status, created_at, collection FROM tasks WHERE id = ?')
-    .get(info.lastInsertRowid) as Task
-  return row
+    .prepare(
+      'SELECT id, title, description, status, created_at, collection, tags FROM tasks WHERE id = ?'
+    )
+    .get(info.lastInsertRowid) as any
+  return {
+    ...row,
+    tags: row.tags ? JSON.parse(row.tags) : []
+  }
 }
 
 function listTasks(): Task[] {
   const database = ensureDb()
-  return database
-    .prepare('SELECT id, title, description, status, created_at, collection FROM tasks ORDER BY created_at DESC')
-    .all() as Task[]
+  const rows = database
+    .prepare(
+      'SELECT id, title, description, status, created_at, collection, tags FROM tasks ORDER BY created_at DESC'
+    )
+    .all() as any[]
+  return rows.map((r) => ({
+    ...r,
+    tags: r.tags ? JSON.parse(r.tags) : []
+  }))
+}
+
+function updateTask(
+  id: number,
+  updates: {
+    title?: string
+    description?: string | null
+    collection?: string | null
+    tags?: string[]
+  }
+): Task {
+  const database = ensureDb()
+  const sets: string[] = []
+  const params: any[] = []
+
+  if (updates.title !== undefined) {
+    sets.push('title = ?')
+    params.push(updates.title)
+  }
+  if (updates.description !== undefined) {
+    sets.push('description = ?')
+    params.push(updates.description)
+  }
+  if (updates.collection !== undefined) {
+    sets.push('collection = ?')
+    params.push(updates.collection)
+  }
+  if (updates.tags !== undefined) {
+    sets.push('tags = ?')
+    params.push(JSON.stringify(updates.tags))
+  }
+
+  if (sets.length === 0) {
+    const row = database
+      .prepare(
+        'SELECT id, title, description, status, created_at, collection, tags FROM tasks WHERE id = ?'
+      )
+      .get(id) as any
+    return {
+      ...row,
+      tags: row.tags ? JSON.parse(row.tags) : []
+    }
+  }
+
+  params.push(id)
+  database.prepare(`UPDATE tasks SET ${sets.join(', ')} WHERE id = ?`).run(...params)
+
+  const row = database
+    .prepare(
+      'SELECT id, title, description, status, created_at, collection, tags FROM tasks WHERE id = ?'
+    )
+    .get(id) as any
+  return {
+    ...row,
+    tags: row.tags ? JSON.parse(row.tags) : []
+  }
 }
 
 function updateTaskStatus(id: number, status: TaskStatus): Task {
   const database = ensureDb()
   database.prepare('UPDATE tasks SET status = ? WHERE id = ?').run(status, id)
   const row = database
-    .prepare('SELECT id, title, description, status, created_at, collection FROM tasks WHERE id = ?')
-    .get(id) as Task
-  return row
+    .prepare(
+      'SELECT id, title, description, status, created_at, collection, tags FROM tasks WHERE id = ?'
+    )
+    .get(id) as any
+  return {
+    ...row,
+    tags: row.tags ? JSON.parse(row.tags) : []
+  }
 }
 
 function deleteTask(id: number): void {
@@ -236,12 +322,40 @@ export function registerIpcHandlers(): void {
   // Tasks
   ipcMain.handle(
     'tasks/create',
-    (_e, payload: { title: string; description?: string | null; collection?: string | null }) =>
-      createTask(payload.title, payload.description ?? null, payload.collection ?? null)
+    (
+      _e,
+      payload: {
+        title: string
+        description?: string | null
+        collection?: string | null
+        tags?: string[]
+      }
+    ) =>
+      createTask(
+        payload.title,
+        payload.description ?? null,
+        payload.collection ?? null,
+        payload.tags ?? []
+      )
   )
   ipcMain.handle('tasks/list', () => listTasks())
   ipcMain.handle('tasks/updateStatus', (_e, payload: { id: number; status: TaskStatus }) =>
     updateTaskStatus(payload.id, payload.status)
+  )
+  ipcMain.handle(
+    'tasks/update',
+    (
+      _e,
+      payload: {
+        id: number
+        updates: {
+          title?: string
+          description?: string | null
+          collection?: string | null
+          tags?: string[]
+        }
+      }
+    ) => updateTask(payload.id, payload.updates)
   )
   ipcMain.handle('tasks/delete', (_e, payload: { id: number }) => deleteTask(payload.id))
 

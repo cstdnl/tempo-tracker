@@ -12,10 +12,11 @@ interface TaskListProps {
   onDelete: (taskId: number) => void
   onArchive: (taskId: number) => void
   onEnterFocus: (taskId: number) => void
+  onUpdate: (id: number, updates: { title?: string, description?: string | null, tags?: string[] }) => Promise<void>
 }
 
 export default function TaskList({
-  tasks, loading, runningByTask, onToggleComplete, onStart, onPause, onDelete, onArchive, onEnterFocus,
+  tasks, loading, runningByTask, onToggleComplete, onStart, onPause, onDelete, onArchive, onEnterFocus, onUpdate,
   subtasksByTask, loadSubtasks, addSubtask, toggleSubtaskComplete, deleteSubtask,
   className
 }: TaskListProps & {
@@ -47,6 +48,7 @@ export default function TaskList({
           onDelete={onDelete}
           onArchive={onArchive}
           onEnterFocus={onEnterFocus}
+          onUpdate={onUpdate}
           loadSubtasks={loadSubtasks}
           subtasks={subtasksByTask[t.id]}
           addSubtask={addSubtask}

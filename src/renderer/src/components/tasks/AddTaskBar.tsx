@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils"
 const MAX_DESCRIPTION_LENGTH = 100
 
 interface AddTaskBarProps {
-  onAdd: (title: string, description?: string | null, collection?: string | null) => void | Promise<void>
+  onAdd: (title: string, description?: string | null, collection?: string | null, tags?: string[]) => void | Promise<void>
   collection?: string | null
 }
 
@@ -24,6 +24,7 @@ export default function AddTaskBar({
   const [expanded, setExpanded] = useState(false)
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
+  const [tagsString, setTagsString] = useState('')
   const [touched, setTouched] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -52,10 +53,34 @@ export default function AddTaskBar({
 
     if (!title.trim()) return
 
-    await onAdd(title.trim(), description.trim() || null, collection ?? null)
+    // Extract tags from title (#tag) AND from the dedicated tags input
+    const tags: string[] = []
+    
+    // 1. Extract from title
+    const titleWithoutTags = title.replace(/#([\w-]+)/g, (match, tag) => {
+      tags.push(tag.toLowerCase())
+      return ''
+    }).trim()
+
+    // 2. Extract from tags input field
+    if (tagsString.trim()) {
+      const inputTags = tagsString
+        .split(/[\s,]+/)
+        .filter((t) => t.trim())
+        .map((t) => t.replace(/^#/, '').toLowerCase())
+      
+      inputTags.forEach(t => {
+        if (!tags.includes(t)) tags.push(t)
+      })
+    }
+
+    const finalTitle = titleWithoutTags || title.trim()
+
+    await onAdd(finalTitle, description.trim() || null, collection ?? null, tags)
 
     setTitle('')
     setDescription('')
+    setTagsString('')
     setExpanded(false)
     setTouched(false)
   }
@@ -63,19 +88,20 @@ export default function AddTaskBar({
   const handleCancel = (): void => {
     setTitle('')
     setDescription('')
+    setTagsString('')
     setExpanded(false)
     setTouched(false)
   }
 
   return (
-    <div className="sticky bottom-0 flex flex-col gap-2 backdrop-blur-sm">
+    <div className="sticky bottom-0 flex flex-col gap-2 backdrop-blur-md rounded-(--radius)">
 
       {!expanded ? (
         <div className="flex justify-start px-2">
           <Button
             variant="ghost"
             size="sm"
-            className="text-muted-foreground hover:text-primary transition-colors h-8 px-2 -ml-2 rounded-(--radius)"
+            className="text-muted-foreground hover:text-primary transition-colors h-10 px-5 -ml-2 rounded-(--radius)"
             onClick={() => setExpanded(true)}
           >
             <Plus className="h-4 w-4 mr-1" />
@@ -119,8 +145,25 @@ export default function AddTaskBar({
                   className="min-h-[80px] px-3 py-2 resize-none"
                 />
                 <InputGroupAddon align="block-end" className="justify-end border-t bg-muted/30 px-2 py-1">
-                  <InputGroupText className="text-[10px] uppercase tracking-tight font-medium text-muted-foreground/70">
+                  <InputGroupText className="text-[10px] uppercase tracking-tight font-medium text-muted-foreground/70 italic">
                     {MAX_DESCRIPTION_LENGTH - description.length} characters remaining
+                  </InputGroupText>
+                </InputGroupAddon>
+              </InputGroup>
+            </div>
+
+            {/* Tags */}
+            <div className="space-y-1">
+              <InputGroup className="rounded-(--radius) focus-within:border-primary focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+                <InputGroupInput
+                  value={tagsString}
+                  onChange={(e) => setTagsString(e.target.value)}
+                  placeholder="Tags (work, urgent...)"
+                  className="h-9 px-3 py-3"
+                />
+                <InputGroupAddon align="block-end" className="justify-end border-t bg-muted/30 px-2 py-1">
+                  <InputGroupText className="text-[10px] uppercase tracking-tight font-medium text-muted-foreground/70 italic">
+                    Separate with spaces or commas
                   </InputGroupText>
                 </InputGroupAddon>
               </InputGroup>
